@@ -1,4 +1,4 @@
-module github.com/IceFireDB/IceFireDB/icefiredb-crdt-kv
+module github.com/IceFireDB/icefiredb-crdt-kv
 
 go 1.17
 

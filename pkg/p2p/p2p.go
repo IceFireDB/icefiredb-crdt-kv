@@ -12,7 +12,6 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -359,15 +358,13 @@ func handlePeerDiscovery(nodehost host.Host, peerchan <-chan peer.AddrInfo) {
 			continue
 		}
 
-		log.Println("found: ", peer.ID)
+		logrus.Debugln("p2p peer found: ", peer.ID)
 		// Connect to the peer
 		err := nodehost.Connect(context.Background(), peer)
 
 		if err != nil {
 			logrus.Debugln("p2p peer connection failed: ", err)
 		}
-
-		log.Println("connect ", peer.ID, err)
 
 		logrus.Debugln("p2p peer connection success: ", peer.ID)
 	}

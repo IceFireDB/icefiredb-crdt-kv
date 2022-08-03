@@ -16,7 +16,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/IceFireDB/IceFireDB/icefiredb-crdt-kv/pkg/p2p"
+	"github.com/IceFireDB/icefiredb-crdt-kv/pkg/p2p"
 	ds "github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	badger "github.com/ipfs/go-ds-badger"
