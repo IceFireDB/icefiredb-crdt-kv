@@ -8,5 +8,5 @@
 The IceFireDB-CDRT-KV engine can support decentralized P2P networking, data synchronization and consistency between nodes. It is a component of the [IceFireDB](https://github.com/IceFireDB/IceFireDB) software ecosystem, thanks to the open source of [IPFS](https://github.com/ipfs).
 
 ## RoadMap
-1. Optimize project structure
+1. Optimize project structure.
 2. Encapsulates the kv engine layer for easy reference by upper-layer applications.
