@@ -1,6 +1,6 @@
 <p align="center">
 <img 
-    src="logo.png" 
+    src="https://user-images.githubusercontent.com/34047788/182571669-85174627-41a2-44e4-9433-31cffb772718.png" 
     height="300" border="0" alt="IceFireDB-CDRT-KV">
 </p>
 
