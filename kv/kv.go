@@ -1,4 +1,4 @@
-package icefiredb_crdt_kv
+package kv
 
 import (
 	"context"
@@ -24,12 +24,12 @@ import (
 )
 
 type Config struct {
-	NodeServiceName     string // 服务发现标识
-	DataStorePath       string // 数据存储路径
-	DataSyncChannel     string // 数据pubsub同步通道
-	NetDiscoveryChannel string // 节点发现通道
-	PrivateKey          []byte // 身份私钥
-	Namespace           string // 数据库名
+	NodeServiceName     string // Service Discovery Identification
+	DataStorePath       string // Data storage path
+	DataSyncChannel     string // Pubsub data synchronization channel
+	NetDiscoveryChannel string // Node discovery channel
+	PrivateKey          []byte // As the private key
+	Namespace           string
 	ListenPort          string
 	Logger              logging.StandardLogger
 }

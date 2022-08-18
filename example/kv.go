@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	icefiredb_crdt_kv "github.com/IceFireDB/icefiredb-crdt-kv"
+	icefiredb_crdt_kv "github.com/IceFireDB/icefiredb-crdt-kv/kv"
 	"github.com/sirupsen/logrus"
 )
 
