@@ -37,7 +37,7 @@ type Config struct {
 type CRDTKeyValueDB struct {
 	cfg        *Config
 	privateKey crypto.PrivKey
-	store      datastore.Batching
+	store      *badger.Datastore
 	p2p        *p2p.P2P
 	crdt       *crdt.Datastore
 }
@@ -215,6 +215,10 @@ func (c *CRDTKeyValueDB) Connect(addr string) error {
 	}
 	c.p2p.Host.ConnManager().TagPeer(inf.ID, "keep", 100)
 	return nil
+}
+
+func (c *CRDTKeyValueDB) Repair() error {
+	return c.crdt.Repair()
 }
 
 func PrintHostAddress(ha host.Host) {
