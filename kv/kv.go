@@ -32,6 +32,8 @@ type Config struct {
 	Namespace           string
 	ListenPort          string
 	Logger              logging.StandardLogger
+	PutHook             func(k ds.Key, v []byte) // Peer node data synchronization hook
+	DeleteHook          func(k ds.Key)           // Peer node data synchronization hook
 }
 
 type CRDTKeyValueDB struct {
@@ -113,11 +115,12 @@ func NewCRDTKeyValueDB(ctx context.Context, c Config) (*CRDTKeyValueDB, error) {
 	opts := crdt.DefaultOptions()
 	opts.Logger = db.cfg.Logger
 	opts.RebroadcastInterval = 5 * time.Second
-	opts.PutHook = func(k ds.Key, v []byte) {
-		fmt.Printf("Added: [%s] -> %s\n> ", k, string(v))
+	if c.PutHook != nil {
+		opts.PutHook = c.PutHook
 	}
-	opts.DeleteHook = func(k ds.Key) {
-		fmt.Printf("Removed: [%s]\n> ", k)
+
+	if c.DeleteHook != nil {
+		opts.DeleteHook = c.DeleteHook
 	}
 
 	db.crdt, err = crdt.New(db.store, ds.NewKey(c.Namespace), ipfs, pubsubBC, opts)
