@@ -97,7 +97,7 @@ func main() {
 	// 	logger.Fatal(err)
 	// }
 
-	p2phost = p2p.NewP2P(serviceName) // create p2p
+	p2phost = p2p.NewP2P(serviceName, nil, "") // create p2p
 	log.Println("host peer id: ", p2phost.Host.ID())
 	p2phost.AdvertiseConnect()
 	log.Println("Connected to P2P Service Peers")

@@ -15,8 +15,10 @@
 # vendor/
 #
 node*
+.idea
 icefiredb-crdt-kv
 
 globaldb-example
+crdtkvdb
 
 example/example

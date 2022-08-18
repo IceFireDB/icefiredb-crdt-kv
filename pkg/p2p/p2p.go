@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -57,12 +58,12 @@ A Kademlia DHT is then bootstrapped on this host using the default peers offered
 and a Peer Discovery service is created from this Kademlia DHT. The PubSub handler is then
 created on the host using the peer discovery service created prior.
 */
-func NewP2P(serviceName string) *P2P {
+func NewP2P(serviceName string, priv crypto.PrivKey, port string) *P2P {
 	// Setup a background context
 	ctx := context.Background()
 
 	// Setup a P2P Host Node :创建 p2p host
-	nodehost, kaddht := setupHost(ctx)
+	nodehost, kaddht := setupHost(ctx, priv, port)
 	// Debug log
 	logrus.Debugln("Created the P2P Host and the Kademlia DHT.")
 
@@ -162,18 +163,22 @@ func (p2p *P2P) AnnounceConnect() {
 
 // A function that generates the p2p configuration options and creates a
 // libp2p host object for the given context. The created host is returned
-func setupHost(ctx context.Context) (host.Host, *dht.IpfsDHT) {
+func setupHost(ctx context.Context, prvkey crypto.PrivKey, port string) (host.Host, *dht.IpfsDHT) {
 	// Set up the host identity options
-	prvkey, pubkey, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, rand.Reader)
+	var err error
+	if prvkey == nil {
+		prvkey, _, err = crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, rand.Reader)
 
-	// Handle any potential error
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err.Error(),
-		}).Fatalln("Failed to Generate P2P Identity Configuration!")
+		// Handle any potential error
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err.Error(),
+			}).Fatalln("Failed to Generate P2P Identity Configuration!")
+		}
 	}
-
-	_ = pubkey
+	if len(port) == 0 {
+		port = "0"
+	}
 
 	identity := libp2p.Identity(prvkey)
 
@@ -195,7 +200,7 @@ func setupHost(ctx context.Context) (host.Host, *dht.IpfsDHT) {
 	logrus.Traceln("Generated P2P Security and Transport Configurations.")
 
 	// Set up host listener address options
-	muladdr, err := multiaddr.NewMultiaddr("/ip4/0.0.0.0/tcp/0")
+	muladdr, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%s", port))
 	listen := libp2p.ListenAddrs(muladdr)
 	// Handle any potential error
 	if err != nil {
@@ -344,21 +349,25 @@ func bootstrapDHT(ctx context.Context, nodehost host.Host, kaddht *dht.IpfsDHT) 
 // channel of peer address information. Meant to be started as a go routine.
 func handlePeerDiscovery(nodehost host.Host, peerchan <-chan peer.AddrInfo) {
 	// Iterate over the peer channel
-	for peer := range peerchan {
+	for pe := range peerchan {
 		// Ignore if the discovered peer is the host itself
-		if peer.ID == nodehost.ID() {
+		if pe.ID == nodehost.ID() {
 			continue
 		}
-
-		logrus.Debugln("p2p peer found: ", peer.ID)
-		// Connect to the peer
-		err := nodehost.Connect(context.Background(), peer)
-
-		if err != nil {
-			logrus.Debugln("p2p peer connection failed: ", err)
+		if len(pe.Addrs) == 0 {
+			continue
 		}
+		go func(p peer.AddrInfo) {
+			// Connect to the peer
+			err := nodehost.Connect(context.TODO(), p)
+			if err != nil {
+				logrus.Errorf("p2p peer %s connection failed: %v", p.String(), err)
+			} else {
+				logrus.Debugf("p2p peer connection success: %s", p.String())
+				nodehost.ConnManager().TagPeer(p.ID, "keep", 100)
+			}
 
-		logrus.Debugln("p2p peer connection success: ", peer.ID)
+		}(pe)
 	}
 }
 
