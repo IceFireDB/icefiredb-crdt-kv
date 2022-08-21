@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	icefiredb_crdt_kv "github.com/IceFireDB/icefiredb-crdt-kv/kv"
+	badger2 "github.com/dgraph-io/badger"
+	"github.com/ipfs/go-datastore/query"
+	"github.com/sirupsen/logrus"
 	"os"
 	"strings"
-
-	icefiredb_crdt_kv "github.com/IceFireDB/icefiredb-crdt-kv/kv"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -77,7 +78,7 @@ func main() {
 			}
 			printVal(is)
 		case "list":
-			result, err := db.Query(ctx)
+			result, err := db.Query(ctx, query.Query{})
 			if err != nil {
 				printVal(err)
 				continue
@@ -86,6 +87,31 @@ func main() {
 				fmt.Printf(fmt.Sprintf("%s => %v\n", val.Key, string(val.Value)))
 			}
 			fmt.Print("> ")
+		case "query":
+			if len(fields) < 2 {
+				printVal("缺少查询条件")
+				continue
+			}
+			//fmt.Println(fields[1], len(fields[1]))
+			q := query.Query{
+				//Prefix: fields[1],
+				Filters: []query.Filter{
+					query.FilterKeyPrefix{
+						Prefix: fields[1],
+					},
+				},
+			}
+			result, err := db.Query(ctx, q)
+			if err != nil {
+				printVal(err)
+				continue
+			}
+			//time.Sleep(time.Second)
+			for val := range result.Next() {
+				fmt.Printf(fmt.Sprintf("%s => %v\n", val.Key, string(val.Value)))
+			}
+			fmt.Print("> ")
+
 		case "connect": // 主动连接
 			if len(fields) < 2 {
 				printVal("缺少连接地址")
@@ -97,6 +123,60 @@ func main() {
 			} else {
 				printVal(err)
 			}
+		case "slist":
+			result, err := db.Store().Query(ctx, query.Query{})
+			if err != nil {
+				printVal(err)
+				continue
+			}
+			for val := range result.Next() {
+				fmt.Printf(fmt.Sprintf("%s => %v\n", val.Key, string(val.Value)))
+			}
+			fmt.Print("> ")
+		case "bquery":
+			if len(fields) < 2 {
+				printVal("缺少查询条件")
+				continue
+			}
+			db.DB().View(func(txn *badger2.Txn) error {
+				opts := badger2.DefaultIteratorOptions
+				opts.PrefetchSize = 10
+				it := txn.NewIterator(opts)
+				defer it.Close()
+				prefix := []byte(fields[1])
+				for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+					item := it.Item()
+					k := item.Key()
+					err := item.Value(func(v []byte) error {
+						fmt.Printf("key=%s, value=%s\n", k, v)
+						return nil
+					})
+					if err != nil {
+						return err
+					}
+				}
+				return nil
+			})
+
+		case "blist":
+			db.DB().View(func(txn *badger2.Txn) error {
+				opts := badger2.DefaultIteratorOptions
+				opts.PrefetchSize = 10
+				it := txn.NewIterator(opts)
+				defer it.Close()
+				for it.Rewind(); it.Valid(); it.Next() {
+					item := it.Item()
+					k := item.Key()
+					err := item.Value(func(v []byte) error {
+						fmt.Printf("key=%s, value=%s\n", k, v)
+						return nil
+					})
+					if err != nil {
+						return err
+					}
+				}
+				return nil
+			})
 		default:
 			printVal("")
 		}
