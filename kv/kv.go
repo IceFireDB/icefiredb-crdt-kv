@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	badger2 "github.com/dgraph-io/badger"
 	"os"
 	"path/filepath"
 	"time"
@@ -199,8 +200,7 @@ func (c *CRDTKeyValueDB) Batch(ctx context.Context) (datastore.Batch, error) {
 	return c.crdt.Batch(ctx)
 }
 
-func (c *CRDTKeyValueDB) Query(ctx context.Context) (query.Results, error) {
-	q := query.Query{}
+func (c *CRDTKeyValueDB) Query(ctx context.Context, q query.Query) (query.Results, error) {
 	return c.crdt.Query(ctx, q)
 }
 
@@ -222,6 +222,14 @@ func (c *CRDTKeyValueDB) Connect(addr string) error {
 
 func (c *CRDTKeyValueDB) Repair() error {
 	return c.crdt.Repair()
+}
+
+func (c *CRDTKeyValueDB) Store() ds.Datastore {
+	return c.store
+}
+
+func (c *CRDTKeyValueDB) DB() *badger2.DB {
+	return c.store.DB
 }
 
 func PrintHostAddress(ha host.Host) {
