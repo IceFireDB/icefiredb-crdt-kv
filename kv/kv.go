@@ -65,6 +65,14 @@ func NewCRDTKeyValueDB(ctx context.Context, c Config) (*CRDTKeyValueDB, error) {
 	db := CRDTKeyValueDB{cfg: &c}
 	var err error
 
+	if !IsFileExist(c.DataStorePath) {
+		// Try to create the directory
+		err := os.MkdirAll(c.DataStorePath, 0700)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	db.store, err = badger.NewDatastore(c.DataStorePath, &badger.DefaultOptions)
 	if err != nil {
 		return nil, err
