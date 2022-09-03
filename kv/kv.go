@@ -141,9 +141,9 @@ func NewCRDTKeyValueDB(ctx context.Context, c Config) (*CRDTKeyValueDB, error) {
 }
 
 func (c *CRDTKeyValueDB) Close() {
-	_ = c.store.Close()
 	_ = c.crdt.Close()
 	_ = c.p2p.Host.Close()
+	_ = c.store.Close()
 }
 
 func (c *CRDTKeyValueDB) MarshalPrivateKey() ([]byte, error) {
