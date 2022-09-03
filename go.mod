@@ -3,6 +3,7 @@ module github.com/IceFireDB/icefiredb-crdt-kv
 go 1.17
 
 require (
+	github.com/dgraph-io/badger v1.6.2
 	github.com/hsanjuan/ipfs-lite v1.4.1
 	github.com/ipfs/go-cid v0.2.0
 	github.com/ipfs/go-datastore v0.5.1
@@ -37,7 +38,6 @@ require (
 	github.com/cskr/pubsub v1.0.2 // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
-	github.com/dgraph-io/badger v1.6.2 // indirect
 	github.com/dgraph-io/ristretto v0.0.2 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
