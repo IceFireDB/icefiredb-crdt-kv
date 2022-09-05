@@ -25,11 +25,12 @@ import (
 )
 
 type Config struct {
-	NodeServiceName     string // Service Discovery Identification
-	DataStorePath       string // Data storage path
-	DataSyncChannel     string // Pubsub data synchronization channel
-	NetDiscoveryChannel string // Node discovery channel
-	PrivateKey          []byte // As the private key
+	NodeServiceName     string               // Service Discovery Identification
+	DataStorePath       string               // Data storage path
+	DataSyncChannel     string               // Pubsub data synchronization channel
+	NetDiscoveryChannel string               // Node discovery channel
+	PubSubHandleType    p2p.PubSubHandleType // PubSub Handle Type - "gossip/flood"
+	PrivateKey          []byte               // As the private key
 	Namespace           string
 	ListenPort          string
 	Logger              logging.StandardLogger
@@ -54,6 +55,9 @@ func NewCRDTKeyValueDB(ctx context.Context, c Config) (*CRDTKeyValueDB, error) {
 	}
 	if len(c.NetDiscoveryChannel) == 0 {
 		return nil, errors.New("config NetDiscoveryChannel error")
+	}
+	if len(c.PubSubHandleType) == 0 {
+		c.PubSubHandleType = p2p.PubSubHandleTypeGossip
 	}
 	if len(c.DataStorePath) == 0 {
 		c.DataStorePath = "./crdtkvdb"
@@ -103,7 +107,7 @@ func NewCRDTKeyValueDB(ctx context.Context, c Config) (*CRDTKeyValueDB, error) {
 	}
 
 	// init p2p
-	db.p2p = p2p.NewP2P(c.NodeServiceName, db.privateKey, c.ListenPort)
+	db.p2p = p2p.NewP2P(c.NodeServiceName, db.privateKey, c.ListenPort, c.PubSubHandleType)
 	db.p2p.AdvertiseConnect()
 	if err := db.nodeNetPubSub(ctx); err != nil {
 		return nil, err
@@ -141,9 +145,9 @@ func NewCRDTKeyValueDB(ctx context.Context, c Config) (*CRDTKeyValueDB, error) {
 }
 
 func (c *CRDTKeyValueDB) Close() {
-	_ = c.store.Close()
 	_ = c.crdt.Close()
 	_ = c.p2p.Host.Close()
+	_ = c.store.Close()
 }
 
 func (c *CRDTKeyValueDB) MarshalPrivateKey() ([]byte, error) {
