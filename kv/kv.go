@@ -25,12 +25,12 @@ import (
 )
 
 type Config struct {
-	NodeServiceName     string // Service Discovery Identification
-	DataStorePath       string // Data storage path
-	DataSyncChannel     string // Pubsub data synchronization channel
-	NetDiscoveryChannel string // Node discovery channel
-	PubSubHandleType    string // PubSub Handle Type - "gossip/flood"
-	PrivateKey          []byte // As the private key
+	NodeServiceName     string               // Service Discovery Identification
+	DataStorePath       string               // Data storage path
+	DataSyncChannel     string               // Pubsub data synchronization channel
+	NetDiscoveryChannel string               // Node discovery channel
+	PubSubHandleType    p2p.PubSubHandleType // PubSub Handle Type - "gossip/flood"
+	PrivateKey          []byte               // As the private key
 	Namespace           string
 	ListenPort          string
 	Logger              logging.StandardLogger
@@ -57,7 +57,7 @@ func NewCRDTKeyValueDB(ctx context.Context, c Config) (*CRDTKeyValueDB, error) {
 		return nil, errors.New("config NetDiscoveryChannel error")
 	}
 	if len(c.PubSubHandleType) == 0 {
-		c.PubSubHandleType = "gossip"
+		c.PubSubHandleType = p2p.PubSubHandleTypeGossip
 	}
 	if len(c.DataStorePath) == 0 {
 		c.DataStorePath = "./crdtkvdb"

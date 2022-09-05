@@ -28,6 +28,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// pubsub handle type
+type PubSubHandleType string
+
+const (
+	PubSubHandleTypeGossip PubSubHandleType = "gossip"
+	PubSubHandleTypeFlood  PubSubHandleType = "flood"
+)
+
 // P2P A structure that represents a P2P Host
 type P2P struct {
 	// Represents the host context layer
@@ -58,7 +66,7 @@ A Kademlia DHT is then bootstrapped on this host using the default peers offered
 and a Peer Discovery service is created from this Kademlia DHT. The PubSub handler is then
 created on the host using the peer discovery service created prior.
 */
-func NewP2P(serviceName string, priv crypto.PrivKey, port string, subType string) *P2P {
+func NewP2P(serviceName string, priv crypto.PrivKey, port string, subType PubSubHandleType) *P2P {
 	// Setup a background context
 	ctx := context.Background()
 
@@ -284,10 +292,13 @@ func setupKadDHT(ctx context.Context, nodehost host.Host) *dht.IpfsDHT {
 
 // A function that generates a PubSub Handler object and returns it
 // Requires a node host and a routing discovery service.
-func setupPubSub(ctx context.Context, subType string, nodehost host.Host, routingdiscovery *discoveryRouting.RoutingDiscovery) *pubsub.PubSub {
-	if subType == "gossip" {
+func setupPubSub(ctx context.Context, subType PubSubHandleType, nodehost host.Host, routingdiscovery *discoveryRouting.RoutingDiscovery) *pubsub.PubSub {
+	var pubsubhandler *pubsub.PubSub
+	var err error
+	switch subType {
+	case PubSubHandleTypeGossip:
 		// Create a new PubSub service which uses a GossipSub router
-		pubsubhandler, err := pubsub.NewGossipSub(ctx, nodehost, pubsub.WithDiscovery(routingdiscovery))
+		pubsubhandler, err = pubsub.NewGossipSub(ctx, nodehost, pubsub.WithDiscovery(routingdiscovery))
 		// Handle any potential error
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
@@ -295,18 +306,20 @@ func setupPubSub(ctx context.Context, subType string, nodehost host.Host, routin
 				"type":  "GossipSub",
 			}).Fatalln("PubSub Handler Creation Failed!")
 		}
-		return pubsubhandler
-	}
-	pubsubhandler, err := pubsub.NewFloodSub(ctx, nodehost, pubsub.WithDiscovery(routingdiscovery))
-	// Handle any potential error
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err.Error(),
-			"type":  "FloodSub",
-		}).Fatalln("PubSub Handler Creation Failed!")
+	case PubSubHandleTypeFlood:
+		// Create a new PubSub service which uses a Flood router
+		pubsubhandler, err = pubsub.NewFloodSub(ctx, nodehost, pubsub.WithDiscovery(routingdiscovery))
+		// Handle any potential error
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err.Error(),
+				"type":  "GossipSub",
+			}).Fatalln("PubSub Handler Creation Failed!")
+		}
+	default:
+		logrus.Fatalln("PubSub Handler Creation Failed: Unknown PubSub Handle Type!")
 	}
 	return pubsubhandler
-
 }
 
 // A function that bootstraps a given Kademlia DHT to satisfy the IPFS router
