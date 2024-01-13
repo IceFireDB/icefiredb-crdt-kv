@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"os"
+	"strings"
+
 	icefiredb_crdt_kv "github.com/IceFireDB/icefiredb-crdt-kv/kv"
 	badger2 "github.com/dgraph-io/badger"
 	"github.com/ipfs/go-datastore/query"
 	"github.com/sirupsen/logrus"
-	"os"
-	"strings"
 )
 
 func main() {
@@ -19,7 +20,7 @@ func main() {
 		NodeServiceName:     "icefiredb-crdt-kv",
 		DataSyncChannel:     "icefiredb-crdt-kv-data",
 		NetDiscoveryChannel: "icefiredb-crdt-kv-net",
-		Namespace:           "test",
+		Namespace:           "icefiredb-crdt-kvdb-ns1",
 		Logger:              log,
 	})
 	if err != nil {
@@ -44,7 +45,7 @@ func main() {
 			return
 		case "get":
 			if len(fields) < 2 {
-				printVal("缺少key")
+				printVal("miss key")
 				continue
 			}
 			val, err := db.Get(ctx, []byte(fields[1]))
@@ -55,20 +56,20 @@ func main() {
 			printVal(string(val))
 		case "put":
 			if len(fields) < 3 {
-				printVal("缺少参数")
+				printVal("Missing parameters")
 				continue
 			}
 
 			printVal(db.Put(ctx, []byte(fields[1]), []byte(fields[2])))
 		case "delete":
 			if len(fields) < 2 {
-				printVal("缺少key")
+				printVal("miss key")
 				continue
 			}
 			printVal(db.Delete(ctx, []byte(fields[1])))
 		case "has":
 			if len(fields) < 2 {
-				printVal("缺少key")
+				printVal("miss key")
 				continue
 			}
 			is, err := db.Has(ctx, []byte(fields[1]))
@@ -89,12 +90,10 @@ func main() {
 			fmt.Print("> ")
 		case "query":
 			if len(fields) < 2 {
-				printVal("缺少查询条件")
+				printVal("Missing query conditions")
 				continue
 			}
-			//fmt.Println(fields[1], len(fields[1]))
 			q := query.Query{
-				//Prefix: fields[1],
 				Filters: []query.Filter{
 					query.FilterKeyPrefix{
 						Prefix: fields[1],
@@ -106,20 +105,18 @@ func main() {
 				printVal(err)
 				continue
 			}
-			//time.Sleep(time.Second)
 			for val := range result.Next() {
 				fmt.Printf(fmt.Sprintf("%s => %v\n", val.Key, string(val.Value)))
 			}
 			fmt.Print("> ")
-
-		case "connect": // 主动连接
+		case "connect":
 			if len(fields) < 2 {
-				printVal("缺少连接地址")
+				printVal("Missing connection address")
 				continue
 			}
 			err = db.Connect(fields[1])
 			if err == nil {
-				printVal("连接成功！")
+				printVal("connection succeeded!")
 			} else {
 				printVal(err)
 			}
@@ -135,7 +132,7 @@ func main() {
 			fmt.Print("> ")
 		case "bquery":
 			if len(fields) < 2 {
-				printVal("缺少查询条件")
+				printVal("Missing query conditions")
 				continue
 			}
 			db.DB().View(func(txn *badger2.Txn) error {
