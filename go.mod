@@ -1,6 +1,6 @@
 module github.com/IceFireDB/icefiredb-crdt-kv
 
-go 1.17
+go 1.18
 
 require (
 	github.com/dgraph-io/badger v1.6.2
