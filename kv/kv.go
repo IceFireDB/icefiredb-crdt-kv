@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	badger2 "github.com/dgraph-io/badger"
 	"os"
 	"path/filepath"
 	"time"
+
+	badger2 "github.com/dgraph-io/badger"
 
 	"github.com/IceFireDB/icefiredb-crdt-kv/pkg/p2p"
 	ipfslite "github.com/hsanjuan/ipfs-lite"
@@ -17,9 +18,9 @@ import (
 	badger "github.com/ipfs/go-ds-badger"
 	crdt "github.com/ipfs/go-ds-crdt"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/libp2p/go-libp2p-core/crypto"
-	"github.com/libp2p/go-libp2p-core/host"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/multiformats/go-multiaddr"
 	ma "github.com/multiformats/go-multiaddr"
 )
@@ -115,7 +116,7 @@ func NewCRDTKeyValueDB(ctx context.Context, c Config) (*CRDTKeyValueDB, error) {
 	PrintHostAddress(db.p2p.Host)
 
 	// init light ipfs node
-	ipfs, err := ipfslite.New(ctx, db.store, db.p2p.Host, db.p2p.KadDHT, nil)
+	ipfs, err := ipfslite.New(ctx, db.store, nil, db.p2p.Host, db.p2p.KadDHT, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +247,7 @@ func (c *CRDTKeyValueDB) DB() *badger2.DB {
 
 func PrintHostAddress(ha host.Host) {
 	// Build host multiaddress
-	hostAddr, _ := ma.NewMultiaddr(fmt.Sprintf("/ipfs/%s", ha.ID().Pretty()))
+	hostAddr, _ := ma.NewMultiaddr(fmt.Sprintf("/ipfs/%s", ha.ID().String()))
 	// Now we can build a full multiaddress to reach this host
 	// by encapsulating both addresses:
 	for _, a := range ha.Addrs() {

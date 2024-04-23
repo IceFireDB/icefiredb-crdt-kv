@@ -11,12 +11,13 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p"
-	"github.com/libp2p/go-libp2p-core/crypto"
-	"github.com/libp2p/go-libp2p-core/host"
-	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/routing"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/routing"
 	discoveryRouting "github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	"github.com/libp2p/go-libp2p/p2p/muxer/yamux"
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
@@ -194,8 +195,8 @@ func setupHost(ctx context.Context, prvkey crypto.PrivKey, port string) (host.Ho
 	logrus.Traceln("Generated P2P Identity Configuration.")
 
 	// Set up TLS secured TCP transport and options
-	tlstransport, err := tls.New(prvkey)
-	security := libp2p.Security(tls.ID, tlstransport)
+	//	tlstransport, err := tls.New(protocol.te, prvke, nil)
+	security := libp2p.Security(tls.ID, tls.New)
 	transport := libp2p.Transport(tcp.NewTCPTransport)
 	// Handle any potential error
 	if err != nil {
@@ -233,7 +234,25 @@ func setupHost(ctx context.Context, prvkey crypto.PrivKey, port string) (host.Ho
 
 	// Setup NAT traversal and relay options
 	nat := libp2p.NATPortMap()
-	relay := libp2p.EnableAutoRelay()
+
+	relayhost, err := libp2p.New(
+		libp2p.ListenAddrs(multiaddr.StringCast("/ip4/127.0.0.1/tcp/0")),
+		libp2p.DisableRelay(),
+		libp2p.ResourceManager(&network.NullResourceManager{}),
+	)
+
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Fatalln("Failed to Generate relay libp2p.New")
+	}
+
+	pi := peer.AddrInfo{
+		ID:    relayhost.ID(),
+		Addrs: relayhost.Addrs(),
+	}
+
+	relay := libp2p.EnableAutoRelayWithStaticRelays([]peer.AddrInfo{pi})
 
 	// Trace log
 	logrus.Traceln("Generated P2P NAT Traversal and Relay Configurations.")
