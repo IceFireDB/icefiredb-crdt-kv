@@ -380,8 +380,20 @@ func bootstrapDHT(ctx context.Context, nodehost host.Host, kaddht *dht.IpfsDHT) 
 		}()
 	}
 
-	// Wait for the waitgroup to complete
-	wg.Wait()
+	// Wait for the waitgroup to complete with timeout for test environments
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		// All connections completed
+	case <-time.After(5 * time.Second):
+		// Timeout - this is expected in test environments
+		logrus.Debugln("Bootstrap connection timeout - continuing without bootstrap peers")
+	}
 
 	// Log the number of bootstrap peers connected
 	logrus.Debugf("Connected to %d out of %d Bootstrap Peers.", connectedbootpeers, totalbootpeers)
@@ -437,4 +449,18 @@ func generateCID(namestring string) cid.Cid {
 	cidvalue := cid.NewCidV1(12, mulhash)
 	// Return the CID
 	return cidvalue
+}
+
+// Close shuts down the P2P host and cleans up resources
+func (p2p *P2P) Close() error {
+	var err error
+	if p2p.KadDHT != nil {
+		err = p2p.KadDHT.Close()
+	}
+	if p2p.Host != nil {
+		if closeErr := p2p.Host.Close(); closeErr != nil {
+			err = closeErr
+		}
+	}
+	return err
 }

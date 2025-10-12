@@ -85,7 +85,7 @@ func main() {
 				continue
 			}
 			for val := range result.Next() {
-				fmt.Printf(fmt.Sprintf("%s => %v\n", val.Key, string(val.Value)))
+				fmt.Printf("%s => %v\n", val.Key, string(val.Value))
 			}
 			fmt.Print("> ")
 		case "query":
@@ -106,7 +106,7 @@ func main() {
 				continue
 			}
 			for val := range result.Next() {
-				fmt.Printf(fmt.Sprintf("%s => %v\n", val.Key, string(val.Value)))
+				fmt.Printf("%s => %v\n", val.Key, string(val.Value))
 			}
 			fmt.Print("> ")
 		case "connect":
@@ -127,7 +127,7 @@ func main() {
 				continue
 			}
 			for val := range result.Next() {
-				fmt.Printf(fmt.Sprintf("%s => %v\n", val.Key, string(val.Value)))
+				fmt.Printf("%s => %v\n", val.Key, string(val.Value))
 			}
 			fmt.Print("> ")
 		case "bquery":

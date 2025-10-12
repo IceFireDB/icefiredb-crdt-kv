@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	badger2 "github.com/dgraph-io/badger"
@@ -233,8 +234,8 @@ func (c *CRDTKeyValueDB) Connect(addr string) error {
 	return nil
 }
 
-func (c *CRDTKeyValueDB) Repair() error {
-	return c.crdt.Repair()
+func (c *CRDTKeyValueDB) Repair(ctx context.Context) error {
+	return c.crdt.Repair(ctx)
 }
 
 func (c *CRDTKeyValueDB) Store() ds.Datastore {
@@ -263,4 +264,15 @@ func IsFileExist(path string) bool {
 		}
 	}
 	return true
+}
+
+// isTestEnvironment checks if the code is running in a test environment
+func isTestEnvironment() bool {
+	// Check if "-test.v" flag is present in command line arguments
+	for _, arg := range os.Args {
+		if strings.HasPrefix(arg, "-test.") {
+			return true
+		}
+	}
+	return false
 }
