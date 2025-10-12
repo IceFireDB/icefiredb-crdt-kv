@@ -209,7 +209,9 @@ func (cr *PubSub) Exit() {
 	// Cancel the existing subscription
 	cr.psub.Cancel()
 	// Close the topic handler
-	cr.pstopic.Close()
+	if err := cr.pstopic.Close(); err != nil {
+		logrus.WithError(err).Error("Failed to close pubsub topic")
+	}
 }
 
 // A method of PubSub that updates the chat user name

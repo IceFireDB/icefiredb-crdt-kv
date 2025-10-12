@@ -92,7 +92,7 @@ func NewCRDTKeyValueDB(ctx context.Context, c Config) (*CRDTKeyValueDB, error) {
 	} else {
 		fileName := filepath.Join(c.DataStorePath, "privatekey")
 		if IsFileExist(fileName) {
-			if data, err := os.ReadFile(fileName); err == nil {
+			if data, err := os.ReadFile(filepath.Clean(fileName)); err == nil {
 				db.privateKey, _ = crypto.UnmarshalPrivateKey(data)
 			}
 		}
