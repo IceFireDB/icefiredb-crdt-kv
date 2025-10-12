@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.25.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Install dependencies
+      run: make deps
+
+    - name: Format check
+      run: make fmt
+
+    - name: Vet code
+      run: make vet
+
+    - name: Run P2P tests
+      run: cd pkg/p2p && go test -v -race -timeout=60s
+    
+    - name: Run example tests
+      run: cd example/kvdb && go test -v -race
+
+    - name: Build example
+      run: make example
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.25.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Install dependencies
+      run: make deps
+
+    - name: Build
+      run: make build
+
+    # - name: Upload build artifacts
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: icefiredb-crdt-kv
+    #     path: build/
+    #     retention-days: 7

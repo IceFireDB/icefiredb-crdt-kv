@@ -85,7 +85,7 @@ func main() {
 				continue
 			}
 			for val := range result.Next() {
-				fmt.Printf(fmt.Sprintf("%s => %v\n", val.Key, string(val.Value)))
+				fmt.Printf("%s => %v\n", val.Key, string(val.Value))
 			}
 			fmt.Print("> ")
 		case "query":
@@ -106,7 +106,7 @@ func main() {
 				continue
 			}
 			for val := range result.Next() {
-				fmt.Printf(fmt.Sprintf("%s => %v\n", val.Key, string(val.Value)))
+				fmt.Printf("%s => %v\n", val.Key, string(val.Value))
 			}
 			fmt.Print("> ")
 		case "connect":
@@ -127,7 +127,7 @@ func main() {
 				continue
 			}
 			for val := range result.Next() {
-				fmt.Printf(fmt.Sprintf("%s => %v\n", val.Key, string(val.Value)))
+				fmt.Printf("%s => %v\n", val.Key, string(val.Value))
 			}
 			fmt.Print("> ")
 		case "bquery":
@@ -135,7 +135,7 @@ func main() {
 				printVal("Missing query conditions")
 				continue
 			}
-			db.DB().View(func(txn *badger2.Txn) error {
+			if err := db.DB().View(func(txn *badger2.Txn) error {
 				opts := badger2.DefaultIteratorOptions
 				opts.PrefetchSize = 10
 				it := txn.NewIterator(opts)
@@ -153,10 +153,12 @@ func main() {
 					}
 				}
 				return nil
-			})
+			}); err != nil {
+				printVal(fmt.Sprintf("Bquery error: %v", err))
+			}
 
 		case "blist":
-			db.DB().View(func(txn *badger2.Txn) error {
+			if err := db.DB().View(func(txn *badger2.Txn) error {
 				opts := badger2.DefaultIteratorOptions
 				opts.PrefetchSize = 10
 				it := txn.NewIterator(opts)
@@ -173,7 +175,9 @@ func main() {
 					}
 				}
 				return nil
-			})
+			}); err != nil {
+				printVal(fmt.Sprintf("Blist error: %v", err))
+			}
 		default:
 			printVal("")
 		}
